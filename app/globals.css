@@ -1,0 +1,255 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: #080C10;
+  --foreground: #f0f2f5;
+  --sidebar: #0D1117;
+  --map-bg: #080C10;
+  --card: #0D1117;
+  --card-foreground: #f0f2f5;
+  --popover: #0D1117;
+  --popover-foreground: #f0f2f5;
+  --primary: #00FF9C;
+  --primary-foreground: #000000;
+  --secondary: #161b22;
+  --secondary-foreground: #c9d1d9;
+  --muted: #161b22;
+  --muted-foreground: #8b949e;
+  --accent: #00FF9C;
+  --accent-foreground: #000000;
+  --warning: #FFC857;
+  --destructive: #FF3B5C;
+  --destructive-foreground: #fca5a5;
+  --offline: #5A5F66;
+  --routes: #2F8CFF;
+  --border: #21262d;
+  --input: #161b22;
+  --ring: #00FF9C;
+  --chart-1: #00FF9C;
+  --chart-2: #2F8CFF;
+  --chart-3: #FFC857;
+  --chart-4: #a78bfa;
+  --chart-5: #FF3B5C;
+  --radius: 0.625rem;
+  --sidebar-foreground: #c9d1d9;
+  --sidebar-primary: #00FF9C;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #00FF9C;
+  --sidebar-accent-foreground: #000000;
+  --sidebar-border: #21262d;
+  --sidebar-ring: #00FF9C;
+
+  /* Staff theme */
+  --staff-bg: #F8F9FA;
+  --staff-light-bg: #FFFFFF;
+  --staff-primary: #2F8CFF;
+  --staff-success: #22C55E;
+  --staff-warning: #FACC15;
+  --staff-danger: #EF4444;
+}
+
+.dark {
+  --background: #080C10;
+  --foreground: #f0f2f5;
+  --sidebar: #0D1117;
+  --map-bg: #080C10;
+  --card: #0D1117;
+  --card-foreground: #f0f2f5;
+  --popover: #0D1117;
+  --popover-foreground: #f0f2f5;
+  --primary: #00FF9C;
+  --primary-foreground: #000000;
+  --secondary: #161b22;
+  --secondary-foreground: #c9d1d9;
+  --muted: #161b22;
+  --muted-foreground: #8b949e;
+  --accent: #00FF9C;
+  --accent-foreground: #000000;
+  --warning: #FFC857;
+  --destructive: #FF3B5C;
+  --destructive-foreground: #fca5a5;
+  --offline: #5A5F66;
+  --routes: #2F8CFF;
+  --border: #21262d;
+  --input: #161b22;
+  --ring: #00FF9C;
+  --sidebar-foreground: #c9d1d9;
+  --sidebar-primary: #00FF9C;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #00FF9C;
+  --sidebar-accent-foreground: #000000;
+  --sidebar-border: #21262d;
+  --sidebar-ring: #00FF9C;
+
+  --staff-bg: #F8F9FA;
+  --staff-light-bg: #FFFFFF;
+  --staff-primary: #2F8CFF;
+  --staff-success: #22C55E;
+  --staff-warning: #FACC15;
+  --staff-danger: #EF4444;
+}
+
+@theme inline {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning: var(--warning);
+  --color-offline: var(--offline);
+  --color-routes: var(--routes);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    position: relative;
+    overflow-x: hidden;
+  }
+  
+  /* Green accent tongues like Fostride */
+  body::before,
+  body::after {
+    content: '';
+    position: fixed;
+    background: linear-gradient(135deg, #00FF9C 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  
+  body::before {
+    top: -50%;
+    right: -20%;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    opacity: 0.1;
+  }
+  
+  body::after {
+    bottom: -30%;
+    left: -10%;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    opacity: 0.08;
+  }
+  
+  /* Selective glow — only apply to explicitly classed elements */
+  .btn-glow {
+    box-shadow: 0 0 12px rgba(0, 255, 156, 0.3);
+    transition: box-shadow 0.3s ease;
+  }
+  .btn-glow:hover {
+    box-shadow: 0 0 16px rgba(0, 255, 156, 0.6);
+  }
+  .btn-glow-warning {
+    box-shadow: 0 0 12px rgba(255, 200, 87, 0.3);
+  }
+  .btn-glow-warning:hover {
+    box-shadow: 0 0 12px rgba(255, 200, 87, 0.8);
+  }
+  .btn-glow-alert {
+    box-shadow: 0 0 12px rgba(255, 59, 92, 0.3);
+  }
+  .btn-glow-alert:hover {
+    box-shadow: 0 0 12px rgba(255, 59, 92, 0.8);
+  }
+}
+
+@layer components {
+  /* Bin marker pulse animation for operational map */
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+
+  .bin-marker {
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  /* Zone label styling */
+  .zone-label {
+    background: none !important;
+    border: none !important;
+  }
+
+  /* Event boundary styling */
+  .event-boundary {
+    filter: drop-shadow(0 0 8px #00FF9C80);
+  }
+
+  /* Leaflet Draw styling */
+  .leaflet-draw-toolbar {
+    background-color: #1a1a1a !important;
+    border: 1px solid #00FF9C20 !important;
+    border-radius: 8px !important;
+  }
+
+  .leaflet-draw-toolbar a {
+    background-color: #00FF9C20 !important;
+    border: 1px solid #00FF9C30 !important;
+  }
+
+  .leaflet-draw-toolbar a:hover {
+    background-color: #00FF9C40 !important;
+  }
+
+  .leaflet-draw-toolbar a.leaflet-draw-edit-edit.enabled {
+    background-color: #00FF9C60 !important;
+  }
+
+  /* Zone drawing map */
+  .leaflet-container {
+    pointer-events: auto !important;
+  }
+
+  /* Cursor feedback during map interaction */
+  .leaflet-container {
+    cursor: crosshair !important;
+  }
+}
