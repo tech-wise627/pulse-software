@@ -29,13 +29,16 @@ export default function WorkerStatusMonitor({ staff = [], assignments = [], zone
       status = 'idle';
     }
 
-    // Find current task
-    const workerAssignments = assignments.filter(a => a.staff_id === s.id && !a.completed_at);
+    // Find current task - Robust ID check
+    const workerAssignments = (assignments || []).filter(a => 
+      String(a.staff_id) === String(s.id) && !a.completed_at
+    );
+
     const currentTask = workerAssignments.length > 0 
       ? workerAssignments[0].device?.name || workerAssignments[0].device?.device_id || 'Tasked'
       : 'Waiting';
 
-    const completedTasks = assignments.filter(a => a.staff_id === s.id && a.completed_at).length;
+    const completedTasks = assignments.filter(a => String(a.staff_id) === String(s.id) && a.completed_at).length;
 
     // Find location zone
     let locationName = 'Unknown Area';
@@ -52,10 +55,11 @@ export default function WorkerStatusMonitor({ staff = [], assignments = [], zone
       status,
       currentTask,
       tasksCompleted: completedTasks,
-      efficiency: status === 'offline' ? 0 : 85 + (parseInt(s.id.slice(-1)) || 0) % 15,
+      efficiency: status === 'offline' ? 0 : 85 + (parseInt(String(s.id).slice(-1)) || 0) % 15,
       location: locationName
     };
   })
+  .filter(w => w.currentTask !== 'Waiting')
   .sort((a, b) => a.name.localeCompare(b.name));
 
   const getStatusBadge = (status: string) => {
@@ -83,10 +87,13 @@ export default function WorkerStatusMonitor({ staff = [], assignments = [], zone
           </CardTitle>
           <div className="flex items-center gap-4 text-sm">
             <span className="text-slate-300">
-              <span className="text-[#00FF9C] font-bold">{activeWorkers}</span> Active
+              <span className="text-[#00FF9C] font-bold">{activeWorkers}</span> Deployed
             </span>
             <span className="text-slate-300">
               <span className="text-blue-400 font-bold">{onlineWorkers}</span> Online
+            </span>
+            <span className="text-slate-500 text-[10px] bg-slate-800/50 px-2 py-0.5 rounded border border-slate-700">
+              {assignments.length} Sync
             </span>
           </div>
         </div>
