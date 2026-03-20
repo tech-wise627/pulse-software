@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { mockAssignments, mockDevices, mockLocations, mockStaff } from '@/lib/mock-data';
 import { notificationService } from '@/lib/notification-service';
-import { checkGeofenceStatus } from '@/lib/geofence';
+import { checkGeofenceStatus, calculateDistance } from '@/lib/geofence';
 import { createClient } from '@/lib/supabase/client';
 import DashboardNav from '@/components/DashboardNav';
 import StaffPanicButton from '@/components/StaffPanicButton';
@@ -44,6 +44,7 @@ export default function StaffDashboard() {
   const staffLocation = mockLocations.find((l) => l.id === staff.location_id);
   
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [geolocationError, setGeolocationError] = useState<string | null>(null);
   const [selectedAssignment, setSelectedAssignment] = useState<string>(staffAssignments[0]?.id || '');
   const [completedAssignments, setCompletedAssignments] = useState<Set<string>>(new Set());
   const [isOutOfZone, setIsOutOfZone] = useState(false);
@@ -57,36 +58,37 @@ export default function StaffDashboard() {
   const supabase = createClient();
   const lastUpdateRef = useRef<number>(0);
 
-  const calculateDistance = (from: [number, number], to: [number, number]): number => {
-    const R = 6371000;
-    const lat1 = (from[0] * Math.PI) / 180;
-    const lat2 = (to[0] * Math.PI) / 180;
-    const deltaLat = ((to[0] - from[0]) * Math.PI) / 180;
-    const deltaLng = ((to[1] - from[1]) * Math.PI) / 180;
+  const startGeolocation = () => {
+    if (!('geolocation' in navigator)) {
+      setGeolocationError('Geolocation is not supported by your browser');
+      return;
+    }
 
-    const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-              Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLng / 2) * Math.sin(deltaLng / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return Math.round(R * c);
+    setGeolocationError(null);
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setUserLocation([latitude, longitude]);
+        setGeolocationError(null);
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        if (error.code === error.PERMISSION_DENIED) {
+          setGeolocationError('PERMISSION_DENIED');
+        } else {
+          setGeolocationError('GEOLOCATION_FAILED');
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
   };
 
   useEffect(() => {
-    if ('geolocation' in navigator) {
-      watchIdRef.current = navigator.geolocation.watchPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setUserLocation([latitude, longitude]);
-        },
-        (error) => {
-          console.error('Geolocation error:', error);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0,
-        }
-      );
-    }
+    startGeolocation();
 
     return () => {
       if (watchIdRef.current !== null) {
@@ -307,6 +309,8 @@ export default function StaffDashboard() {
         nextBin={nextBinDevice}
         zone={staffLocation?.name || 'Unknown Zone'}
         userLocation={userLocation || undefined}
+        geolocationError={geolocationError}
+        onRetryGeolocation={startGeolocation}
         onMarkCleaned={handleCompleteAssignment}
         completedCount={completedAssignments.size}
         allBins={staffAssignments.map((a) => mockDevices.find((d) => d.id === a.device_id)).filter(Boolean) as typeof mockDevices}

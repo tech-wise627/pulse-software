@@ -23,6 +23,8 @@ interface StaffDashboardMinimalProps {
   allBins?: any[];
   completedAssignmentIds?: string[];
   staffAssignments?: any[];
+  geolocationError?: string | null;
+  onRetryGeolocation?: () => void;
 }
 
 export default function StaffDashboardMinimal({
@@ -36,6 +38,8 @@ export default function StaffDashboardMinimal({
   allBins = [],
   completedAssignmentIds = [],
   staffAssignments = [],
+  geolocationError = null,
+  onRetryGeolocation,
 }: StaffDashboardMinimalProps) {
   const [language, setLanguage] = useState<Language>('en');
   const t = useTranslation(language);
@@ -94,6 +98,40 @@ export default function StaffDashboardMinimal({
 
   return (
     <div className="min-h-screen bg-white text-slate-900 p-4 flex flex-col max-w-md mx-auto">
+      {/* Geolocation Error Alert */}
+      {geolocationError && (
+        <Card className="mb-6 border-red-500 bg-red-50 overflow-hidden">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="text-sm font-bold text-red-900 leading-none mb-1">
+                  {geolocationError === 'PERMISSION_DENIED' ? 'Location Access Denied' : 'Location Sync Failed'}
+                </h3>
+                <p className="text-xs text-red-700 mb-3">
+                  {geolocationError === 'PERMISSION_DENIED' 
+                    ? 'We need your location to track your route and geofence status. Please enable location in your browser settings.'
+                    : 'We could not sync your location. Please check your GPS signal and try again.'}
+                </p>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                   onClick={onRetryGeolocation}
+                  className="h-8 text-xs border-red-300 text-red-700 hover:bg-red-100 hover:text-red-800"
+                >
+                  Request Permission / Retry
+                </Button>
+                {geolocationError === 'PERMISSION_DENIED' && (
+                  <p className="mt-2 text-[10px] text-red-500 italic">
+                    On iPad: Go to Settings {" > "} Privacy {" > "} Location Services and ensure Safari is allowed.
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Header: Language + Worker Info */}
       <div className="flex items-center justify-between mb-6">
         <div>
