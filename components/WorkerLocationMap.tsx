@@ -310,47 +310,46 @@ export default function WorkerLocationMap({
 
   const activeWorkers = workers.filter((w) => w.status === 'active').length;
   const offlineWorkers = workers.filter((w) => w.status === 'offline').length;
+  const [isPersonnelListExpanded, setIsPersonnelListExpanded] = useState(false);
 
   return (
     <div className="relative group bg-white/[0.03] border border-white/10 rounded-[2rem] overflow-hidden backdrop-blur-md shadow-2xl transition-all">
-      <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
-        <div className="flex items-center gap-5">
-          <div className="w-12 h-12 rounded-2xl bg-[#00FF9C]/10 border border-[#00FF9C]/20 flex items-center justify-center">
-            <MapPin className="w-6 h-6 text-[#00FF9C]" />
+      <div className="p-5 lg:p-8 border-b border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/[0.01]">
+        <div className="flex items-center gap-4 lg:gap-5">
+          <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl bg-[#00FF9C]/10 border border-[#00FF9C]/20 flex items-center justify-center shrink-0">
+            <MapPin className="w-5 h-5 lg:w-6 lg:h-6 text-[#00FF9C]" />
           </div>
           <div>
-            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">Personnel Telemetry</h3>
-            <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mt-0.5 whitespace-nowrap">Real-time vector tracking</p>
+            <h3 className="text-xs lg:text-sm font-black uppercase tracking-[0.2em] text-white">Personnel Telemetry</h3>
+            <p className="text-[9px] lg:text-[10px] font-bold text-white/30 uppercase tracking-widest mt-0.5 whitespace-nowrap">Real-time vector tracking</p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="px-5 py-2.5 rounded-xl bg-[#00FF9C]/5 border border-[#00FF9C]/10 flex items-center gap-3">
-             <div className="w-1.5 h-1.5 rounded-full bg-[#00FF9C] animate-ping" />
-             <span className="text-[10px] font-black text-[#00FF9C] uppercase tracking-widest leading-none">{activeWorkers} Connected</span>
+        <div className="flex items-center gap-3 lg:gap-4">
+          <div className="px-4 lg:px-5 py-2 lg:py-2.5 rounded-xl bg-[#00FF9C]/5 border border-[#00FF9C]/10 flex items-center gap-2 lg:gap-3">
+             <div className="w-1 lg:w-1.5 h-1 lg:h-1.5 rounded-full bg-[#00FF9C] animate-ping" />
+             <span className="text-[9px] lg:text-[10px] font-black text-[#00FF9C] uppercase tracking-widest leading-none">{activeWorkers} Active</span>
           </div>
           {offlineWorkers > 0 && (
-            <div className="px-5 py-2.5 rounded-xl bg-white/5 border border-white/10 flex items-center gap-3">
-               <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
-               <span className="text-[10px] font-black text-white/30 uppercase tracking-widest leading-none">{offlineWorkers} Silent</span>
+            <div className="px-4 lg:px-5 py-2 lg:py-2.5 rounded-xl bg-white/5 border border-white/10 flex items-center gap-2 lg:gap-3">
+               <div className="w-1 lg:w-1.5 h-1 lg:h-1.5 rounded-full bg-white/20" />
+               <span className="text-[9px] lg:text-[10px] font-black text-white/30 uppercase tracking-widest leading-none">{offlineWorkers} Silent</span>
             </div>
           )}
         </div>
       </div>
 
       <div className="relative">
-        {/* Map Container */}
         <div
           ref={mapContainer}
           className="rounded-b-[1.5rem] lg:rounded-b-[2rem]"
           style={{
             width: '100%',
             height: '100%',
-            minHeight: '350px',
+            minHeight: '400px',
             backgroundColor: '#080C10',
           }}
         />
 
-        {/* Layer Controls - Integrated into map top-right */}
         <div className="absolute top-4 right-4 lg:top-6 lg:right-6 z-[1000] flex flex-col gap-2">
            <button 
              onClick={() => setShowZones(!showZones)}
@@ -372,50 +371,74 @@ export default function WorkerLocationMap({
            </button>
         </div>
 
-        {/* Tactical Worker Overlay */}
-        <div className="absolute bottom-4 right-4 lg:bottom-6 lg:right-6 z-[1000] w-[calc(100%-2rem)] sm:w-80 max-h-[200px] lg:max-h-[300px] bg-[#0D1117]/80 backdrop-blur-2xl border border-white/10 rounded-[1.5rem] lg:rounded-[2rem] shadow-2xl overflow-hidden flex flex-col">
-           <div className="p-4 lg:p-6 border-b border-white/5 flex items-center justify-between">
-              <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Field Units</span>
-              <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-lg bg-white/5 flex items-center justify-center">
-                 <Radio className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-[#00FF9C]" />
+        {/* Tactical Worker Overlay - now collapsible */}
+        <div className={`absolute bottom-4 right-4 lg:bottom-6 lg:right-6 z-[1000] sm:w-64 bg-[#0D1117]/85 backdrop-blur-2xl border border-white/10 rounded-[1.2rem] lg:rounded-[1.5rem] shadow-2xl overflow-hidden flex flex-col transition-all duration-300 ${
+          isPersonnelListExpanded ? 'w-[calc(100%-2rem)] max-h-[250px] lg:max-h-[350px]' : 'w-auto max-h-[50px] lg:max-h-[60px]'
+        }`}>
+           <div 
+             className="p-3 lg:p-4 border-b border-white/5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-colors group/header"
+             onClick={() => setIsPersonnelListExpanded(!isPersonnelListExpanded)}
+           >
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <Radio className={`w-3.5 h-3.5 lg:w-4 lg:h-4 text-[#00FF9C] ${activeWorkers > 0 ? 'animate-pulse' : ''}`} />
+                  {!isPersonnelListExpanded && activeWorkers > 0 && (
+                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-[#00FF9C] rounded-full border border-[#0D1117] shadow-[0_0_5px_#00FF9C]" />
+                  )}
+                </div>
+                <span className="text-[8px] lg:text-[10px] font-black uppercase tracking-[0.2em] text-white">Personnel ({workers.length})</span>
+              </div>
+              <div className="flex items-center gap-2">
+                 {!isPersonnelListExpanded && outOfBoundsWorkers.length > 0 && (
+                   <div className="px-1.5 py-0.5 bg-[#FF3B5C]/20 border border-[#FF3B5C]/40 rounded text-[6px] font-black text-[#FF3B5C] animate-pulse">
+                     {outOfBoundsWorkers.length} ALERT
+                   </div>
+                 )}
+                 <button className="text-white/40 group-hover/header:text-[#00FF9C] transition-colors text-xs font-black">
+                   {isPersonnelListExpanded ? '−' : '+'}
+                 </button>
               </div>
            </div>
-           <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-             {workers.length === 0 ? (
-               <div className="p-10 text-center opacity-20">
-                  <p className="text-[10px] font-black uppercase tracking-widest">No Signals</p>
-               </div>
-             ) : (
-               workers.map((worker) => (
-                 <div
-                   key={worker.id}
-                   className={`p-4 rounded-2xl border transition-all duration-300 ${
-                     worker.isOutOfBounds
-                       ? 'bg-[#FF3B5C]/10 border-[#FF3B5C]/30 shadow-[0_0_20px_rgba(255,59,92,0.1)]'
-                       : 'bg-white/[0.02] border-white/5 hover:border-white/20'
-                   }`}
-                 >
-                   <div className="flex items-center justify-between">
-                     <div className="flex items-center gap-3">
-                        <div className="w-2 h-2 rounded-full animate-pulse" 
-                             style={{ 
-                               backgroundColor: worker.isOutOfBounds ? '#FF3B5C' : 
-                                               worker.status === 'active' ? '#00FF9C' : 
-                                               worker.status === 'idle' ? '#FFC857' : '#5A5F66' 
-                             }} />
-                        <div>
-                          <p className="text-[10px] font-black text-white uppercase tracking-widest leading-none">{worker.name}</p>
-                          <p className="text-[8px] font-bold text-white/20 uppercase tracking-tighter mt-1">{worker.status}</p>
-                        </div>
-                     </div>
-                     {worker.isOutOfBounds && (
-                       <div className="px-2 py-0.5 bg-[#FF3B5C] rounded text-[7px] font-black text-white uppercase tracking-widest">Breach</div>
-                     )}
-                   </div>
+           
+           {isPersonnelListExpanded && (
+             <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
+               {workers.length === 0 ? (
+                 <div className="py-6 text-center opacity-20">
+                    <p className="text-[8px] lg:text-[10px] font-black uppercase tracking-widest italic">No Active Signals</p>
                  </div>
-               ))
-             )}
-           </div>
+               ) : (
+                 workers.map((worker) => (
+                   <div
+                     key={worker.id}
+                     className={`p-3 rounded-xl border transition-all duration-300 ${
+                       worker.isOutOfBounds
+                         ? 'bg-[#FF3B5C]/10 border-[#FF3B5C]/30'
+                         : 'bg-white/[0.02] border-white/5 hover:border-white/10'
+                     }`}
+                   >
+                     <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                           <div className="w-1.5 h-1.5 rounded-full shrink-0" 
+                                style={{ 
+                                  backgroundColor: worker.isOutOfBounds ? '#FF3B5C' : 
+                                                  worker.status === 'active' ? '#00FF9C' : 
+                                                  worker.status === 'idle' ? '#FFC857' : '#5A5F66',
+                                  boxShadow: `0 0 10px ${worker.isOutOfBounds ? '#FF3B5C' : worker.status === 'active' ? '#00FF9C' : 'transparent'}`
+                                }} />
+                           <div className="truncate">
+                             <p className="text-[9px] lg:text-[10px] font-black text-white uppercase tracking-widest leading-none truncate">{worker.name}</p>
+                             <p className="text-[7px] lg:text-[8px] font-bold text-white/20 uppercase tracking-tighter mt-1">{worker.status}</p>
+                           </div>
+                        </div>
+                        {worker.isOutOfBounds && (
+                          <div className="px-1.5 py-0.5 bg-[#FF3B5C] rounded-md text-[6px] font-black text-white uppercase tracking-widest shrink-0">BREACH</div>
+                        )}
+                     </div>
+                   </div>
+                 ))
+               )}
+             </div>
+           )}
         </div>
       </div>
       <style jsx global>{`
