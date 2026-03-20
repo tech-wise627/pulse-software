@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     } else if (userData?.role === 'staff') {
       // Staff can only see their own assignments
       query = query.eq('staff_id', user.id);
-    } else if (userData?.role === 'manager') {
+    } else if (userData?.role === 'manager' && userData.event_location_id) {
       // Manager can see assignments for their location
       const { data: usersInLocation } = await supabase
         .from('users')

@@ -56,7 +56,6 @@ export default function WorkerStatusMonitor({ staff = [], assignments = [], zone
       location: locationName
     };
   })
-  .filter(w => w.currentTask !== 'Waiting')
   .sort((a, b) => a.name.localeCompare(b.name));
 
   const getStatusBadge = (status: string) => {
