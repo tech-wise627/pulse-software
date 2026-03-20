@@ -43,7 +43,8 @@ export default function BinDetailsPanel({ device, staffList = [], onClose }: Bin
             setSelectedStaffId('');
           }
         } else {
-          console.error(`[Diagnostic] Assignment API failed with status:`, res.status);
+          const errData = await res.json().catch(() => ({ error: 'Unknown server error' }));
+          console.error(`[Diagnostic] Assignment API failed (${res.status}):`, errData);
         }
       } catch (err) {
         console.error('[Diagnostic] Failed to load assignment', err);

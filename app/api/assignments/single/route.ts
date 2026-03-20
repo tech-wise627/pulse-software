@@ -9,17 +9,45 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing device_id parameter' }, { status: 400 });
     }
 
-    console.log(`[Diagnostic] Fetching assignment for device_id: ${device_id}`);
+    console.log(`[Diagnostic] GET request received for device_id: ${device_id}`);
     
-    const supabaseAdmin = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    // Check environment variables
+    const hasUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const hasServiceKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const hasAnonKey = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
-    const client = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : await createClient();
+    console.log(`[Diagnostic] Env Check - URL: ${hasUrl}, ServiceKey: ${hasServiceKey}, AnonKey: ${hasAnonKey}`);
+
+    if (!hasUrl) {
+      return NextResponse.json({ error: 'System configuration error: NEXT_PUBLIC_SUPABASE_URL is missing' }, { status: 500 });
+    }
+
+    let client;
+    try {
+      if (hasServiceKey) {
+        client = createSupabaseClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+        console.log(`[Diagnostic] Using Service Role Client`);
+      } else {
+        client = await createClient();
+        console.log(`[Diagnostic] Falling back to standard Server Client`);
+      }
+    } catch (clientErr: any) {
+      console.error('[Diagnostic] Client creation failed:', clientErr);
+      return NextResponse.json({ 
+        error: `Supabase client initialization failed: ${clientErr.message}`,
+        diagnostics: { hasUrl, hasServiceKey, hasAnonKey }
+      }, { status: 500 });
+    }
 
     // Diagnostic query: find ANY assignments to see if the table is even working
-    const { count } = await client.from('staff_assignments').select('*', { count: 'exact', head: true });
+    const { count, error: countError } = await client.from('staff_assignments').select('*', { count: 'exact', head: true });
+    if (countError) {
+      console.error('[Diagnostic] Count query failed:', countError);
+      return NextResponse.json({ error: `Database access failed: ${countError.message}`, code: countError.code }, { status: 500 });
+    }
     console.log(`[Diagnostic] Total assignments in table: ${count}`);
 
     const { data, error } = await client
@@ -32,11 +60,14 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('[Diagnostic] Select error:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: error.message, code: error.code }, { status: 500 });
     }
 
     const assignment = data && data.length > 0 ? data[0] : null;
-    return NextResponse.json({ assignment });
+    return NextResponse.json({ 
+      assignment,
+      diagnostics: { count, device_id, env: { hasUrl, hasServiceKey } }
+    });
   } catch (error: any) {
     console.error('Error fetching single assignment:', error);
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
