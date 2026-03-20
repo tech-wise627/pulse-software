@@ -27,14 +27,11 @@ export default function BinDetailsPanel({ device, staffList = [], onClose }: Bin
     
     async function fetchAssignment() {
       if (!device) return;
-      console.log(`[Diagnostic] Fetching assignment for device:`, device.id);
       setLoadingAssignment(true);
       try {
         const res = await fetch(`/api/assignments/single?device_id=${device.id}`);
         if (res.ok) {
-          const data = await res.json();
-          console.log(`[Diagnostic] Assignment API response:`, data);
-          const { assignment } = data;
+          const { assignment } = await res.json();
           if (assignment && assignment.staff) {
             setAssignedStaff(assignment.staff);
             setSelectedStaffId(assignment.staff.id);
@@ -42,12 +39,9 @@ export default function BinDetailsPanel({ device, staffList = [], onClose }: Bin
             setAssignedStaff(null);
             setSelectedStaffId('');
           }
-        } else {
-          const errData = await res.json().catch(() => ({ error: 'Unknown server error' }));
-          console.error(`[Diagnostic] Assignment API failed (${res.status}):`, errData);
         }
       } catch (err) {
-        console.error('[Diagnostic] Failed to load assignment', err);
+        console.error('Failed to load assignment', err);
       }
       setLoadingAssignment(false);
     }
