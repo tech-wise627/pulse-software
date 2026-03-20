@@ -55,7 +55,9 @@ export default function WorkerStatusMonitor({ staff = [], assignments = [], zone
       efficiency: status === 'offline' ? 0 : 85 + (parseInt(s.id.slice(-1)) || 0) % 15,
       location: locationName
     };
-  });
+  })
+  .filter(w => w.currentTask !== 'Waiting')
+  .sort((a, b) => a.name.localeCompare(b.name));
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -105,47 +107,55 @@ export default function WorkerStatusMonitor({ staff = [], assignments = [], zone
               </tr>
             </thead>
             <tbody>
-              {workers.map((worker) => {
-                const statusConfig = getStatusBadge(worker.status);
-                return (
-                  <tr key={worker.id} className="border-b border-slate-700 hover:bg-slate-800/30 transition">
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-[#00FF9C]"></span>
-                        <span className="font-medium text-white">{worker.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 text-center">
-                      <Badge
-                        className={`${statusConfig.bg} ${statusConfig.border} ${statusConfig.text} border`}
-                      >
-                        {statusConfig.icon} {statusConfig.label}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-2">
-                        <Activity className="w-3 h-3 text-slate-400" />
-                        <span className="text-slate-300">{worker.currentTask}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 text-center">
-                      <span className="font-bold text-[#00FF9C]">{worker.tasksCompleted}</span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-2">
-                        <Progress value={worker.efficiency} className="h-2 w-12" />
-                        <span className="text-slate-300 font-medium text-xs">{worker.efficiency}%</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-slate-400" />
-                        <span className="text-slate-400 text-xs">{worker.location}</span>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+              {workers.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-slate-500 italic uppercase tracking-widest text-[10px]">
+                    No Deployed Personnel Found
+                  </td>
+                </tr>
+              ) : (
+                workers.map((worker) => {
+                  const statusConfig = getStatusBadge(worker.status);
+                  return (
+                    <tr key={worker.id} className="border-b border-slate-700 hover:bg-slate-800/30 transition">
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-2">
+                          <span className={`w-2 h-2 rounded-full ${worker.status === 'offline' ? 'bg-slate-600' : 'bg-[#00FF9C]'}`}></span>
+                          <span className="font-bold text-white uppercase tracking-tight">{worker.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        <Badge
+                          className={`${statusConfig.bg} ${statusConfig.border} ${statusConfig.text} border text-[10px] px-2 py-0.5`}
+                        >
+                          {statusConfig.icon} {statusConfig.label}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-2">
+                          <Activity className="w-3 h-3 text-slate-400" />
+                          <span className="text-slate-300 font-bold text-xs uppercase">{worker.currentTask}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        <span className="font-bold text-[#00FF9C]">{worker.tasksCompleted}</span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-2">
+                          <Progress value={worker.efficiency} className="h-2 w-12" />
+                          <span className="text-slate-300 font-black text-[10px]">{worker.efficiency}%</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-[#00FF9C]/40" />
+                          <span className="text-slate-400 text-[10px] font-bold uppercase">{worker.location}</span>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
