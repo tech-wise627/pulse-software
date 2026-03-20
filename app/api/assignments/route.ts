@@ -19,23 +19,17 @@ export async function GET(request: NextRequest) {
 
     const staffId = request.nextUrl.searchParams.get('staff_id');
 
+    // Get assignments without complex joins that might fail if relationships aren't cached
     let query = supabase
       .from('staff_assignments')
-      .select(`
-        *,
-        staff:users!staff_id(id, full_name, email),
-        device:iot_devices(id, name, device_id, latitude, longitude, battery_level, is_connected, is_tilted),
-        assignedBy:users!assigned_by(id, full_name)
-      `)
+      .select('*')
       .order('assignment_order', { ascending: true });
 
     if (staffId) {
       query = query.eq('staff_id', staffId);
     } else if (userData?.role === 'staff') {
-      // Staff can only see their own assignments
       query = query.eq('staff_id', user.id);
     } else if (userData?.role === 'manager' && userData.event_location_id) {
-      // Manager can see assignments for their location
       const { data: usersInLocation } = await supabase
         .from('users')
         .select('id')
@@ -50,10 +44,27 @@ export async function GET(request: NextRequest) {
     const { data: assignments, error: assignmentsError } = await query;
 
     if (assignmentsError) {
+      console.error('[v0] Assignments API query error:', assignmentsError);
       return NextResponse.json({ error: assignmentsError.message }, { status: 500 });
     }
 
-    return NextResponse.json(assignments);
+    // Manually fetch device names for assignments to avoid join issues
+    if (assignments && assignments.length > 0) {
+      const deviceIds = assignments.map(a => a.device_id);
+      const { data: devices } = await supabase
+        .from('iot_devices')
+        .select('id, name, device_id')
+        .in('id', deviceIds);
+      
+      const assignmentsWithDevices = assignments.map(a => ({
+        ...a,
+        device: devices?.find(d => d.id === a.device_id) || { name: 'Unknown Bin', device_id: a.device_id }
+      }));
+      
+      return NextResponse.json(assignmentsWithDevices);
+    }
+
+    return NextResponse.json(assignments || []);
   } catch (error) {
     console.error('[v0] Error in GET /api/assignments:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
