@@ -4,24 +4,36 @@ import { Users, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { calculateFillRate, estimateCrowdDensity } from '@/lib/operations-intelligence';
+import { isPointInPolygon } from '@/lib/geofence';
+import { Zone } from '@/lib/types';
 
 interface CrowdDensityPanelProps {
   devices: any[];
-  zones?: Array<{ id: string; name: string }>;
+  zones?: Zone[];
 }
 
 export default function CrowdDensityPanel({ devices, zones = [] }: CrowdDensityPanelProps) {
-  // Group devices by zone
+  // Group devices by zone using spatial logic
   const devicesByZone = zones.length > 0
     ? zones.map(zone => ({
         zoneId: zone.id,
         zoneName: zone.name,
-        devices: devices.filter(d => d.zone_id === zone.id),
+        devices: devices.filter(d => {
+          // Check for manual assignment first
+          if (d.zone_id === zone.id) return true;
+          
+          // Fallback to spatial check if coordinates exist
+          if (d.latitude && d.longitude && zone.boundary) {
+            return isPointInPolygon([d.latitude, d.longitude], zone.boundary);
+          }
+          
+          return false;
+        }),
       }))
     : [
         {
           zoneId: 'default',
-          zoneName: 'All Zones',
+          zoneName: 'All Areas',
           devices,
         },
       ];
@@ -82,13 +94,13 @@ export default function CrowdDensityPanel({ devices, zones = [] }: CrowdDensityP
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p className="font-semibold text-white text-sm flex items-center gap-2">
                       <span>{getCrowdIcon(density.density)}</span>
-                      {density.zoneName}
+                      <span className="truncate">{density.zoneName}</span>
                     </p>
-                    <p className="text-xs text-slate-400 mt-1">
-                      {density.binCount} bins • {density.averageFillRate.toFixed(1)}% fill rate/min
+                    <p className="text-[10px] text-slate-400 mt-1 font-medium">
+                      {density.binCount} {density.binCount === 1 ? 'Node' : 'Nodes'} • {density.averageFillRate.toFixed(1)}%/min
                     </p>
                   </div>
                   <Badge
@@ -98,11 +110,22 @@ export default function CrowdDensityPanel({ devices, zones = [] }: CrowdDensityP
                         : density.density === 'medium'
                         ? 'bg-yellow-500 text-white'
                         : 'bg-green-500 text-white'
-                    }`}
+                    } text-[10px] px-2 py-0.5`}
                   >
                     {density.density.toUpperCase()}
                   </Badge>
                 </div>
+
+                {/* Specific Bins List */}
+                {density.binCount > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {devicesByZone.find(z => z.zoneId === density.zoneId)?.devices.map(d => (
+                      <span key={d.id} className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[8px] font-bold text-white/40 uppercase tracking-tighter">
+                        {d.device_id || d.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 {/* Visual fill rate indicator */}
                 <div className="w-full bg-slate-700/50 rounded-full h-1.5 overflow-hidden mt-2">

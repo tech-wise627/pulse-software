@@ -498,7 +498,7 @@ export default function ManagerDashboard() {
                 <EmergencyCleanButton />
               </div>
               <div className="lg:col-span-1">
-                <ZonePerformancePanel />
+                <ZonePerformancePanel devices={locationDevices} zones={zones} />
               </div>
               <div className="lg:col-span-1">
                 <WorkerStatusMonitor />
