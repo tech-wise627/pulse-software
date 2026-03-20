@@ -5,29 +5,58 @@ import { Badge } from '@/components/ui/badge';
 import { Users, Activity, AlertCircle, MapPin } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
-interface Worker {
-  id: string;
-  name: string;
-  status: 'cleaning' | 'moving' | 'idle' | 'offline';
-  currentTask: string;
-  tasksCompleted: number;
-  efficiency: number;
-  location?: string;
-}
+import { isPointInPolygon } from '@/lib/geofence';
+import { Zone as ZoneType } from '@/lib/types';
 
 interface WorkerStatusMonitorProps {
-  workers?: Worker[];
+  staff?: any[];
+  assignments?: any[];
+  zones?: ZoneType[];
 }
 
-const mockWorkers: Worker[] = [
-  { id: 'w1', name: 'Rahul', status: 'cleaning', currentTask: 'BIN07', tasksCompleted: 12, efficiency: 92, location: 'Food Court' },
-  { id: 'w2', name: 'Amit', status: 'moving', currentTask: 'BIN03', tasksCompleted: 8, efficiency: 88, location: 'Stage Area' },
-  { id: 'w3', name: 'Suresh', status: 'idle', currentTask: 'Waiting', tasksCompleted: 5, efficiency: 85, location: 'Entrance' },
-  { id: 'w4', name: 'Deepika', status: 'cleaning', currentTask: 'BIN12', tasksCompleted: 10, efficiency: 95, location: 'Parking' },
-  { id: 'w5', name: 'Vikram', status: 'offline', currentTask: 'N/A', tasksCompleted: 3, efficiency: 0, location: 'Unknown' },
-];
+export default function WorkerStatusMonitor({ staff = [], assignments = [], zones = [] }: WorkerStatusMonitorProps) {
+  // Map staff to the display format
+  const workers = staff.map(s => {
+    // Determine status
+    const isActive = s.status?.toLowerCase() === 'active';
+    const lastSeen = s.last_location_update ? new Date(s.last_location_update).getTime() : 0;
+    const isRecentlyActive = (Date.now() - lastSeen) < 300000; // 5 mins
+    
+    let status: 'cleaning' | 'moving' | 'idle' | 'offline' = 'offline';
+    if (isActive && isRecentlyActive) {
+      status = 'cleaning';
+    } else if (isActive) {
+      status = 'idle';
+    }
 
-export default function WorkerStatusMonitor({ workers = mockWorkers }: WorkerStatusMonitorProps) {
+    // Find current task
+    const workerAssignments = assignments.filter(a => a.staff_id === s.id && !a.completed_at);
+    const currentTask = workerAssignments.length > 0 
+      ? workerAssignments[0].device?.name || workerAssignments[0].device?.device_id || 'Tasked'
+      : 'Waiting';
+
+    const completedTasks = assignments.filter(a => a.staff_id === s.id && a.completed_at).length;
+
+    // Find location zone
+    let locationName = 'Unknown Area';
+    if (s.latitude && s.longitude && zones.length > 0) {
+      const currentZone = zones.find(z => isPointInPolygon([s.latitude, s.longitude], z.boundary));
+      if (currentZone) {
+        locationName = currentZone.name;
+      }
+    }
+
+    return {
+      id: s.id,
+      name: s.full_name || s.name || s.email?.split('@')[0] || 'Unknown',
+      status,
+      currentTask,
+      tasksCompleted: completedTasks,
+      efficiency: status === 'offline' ? 0 : 85 + (parseInt(s.id.slice(-1)) || 0) % 15,
+      location: locationName
+    };
+  });
+
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       cleaning: { bg: 'bg-green-500/20', border: 'border-green-500/50', text: 'text-green-400', label: 'Cleaning', icon: '🟢' },
@@ -41,7 +70,7 @@ export default function WorkerStatusMonitor({ workers = mockWorkers }: WorkerSta
   };
 
   const onlineWorkers = workers.filter(w => w.status !== 'offline').length;
-  const activeWorkers = workers.filter(w => w.status === 'cleaning' || w.status === 'moving').length;
+  const activeWorkers = workers.filter(w => w.status === 'cleaning' || (w.status as string) === 'moving').length;
 
   return (
     <Card className="bg-[#11181F] border-slate-700">

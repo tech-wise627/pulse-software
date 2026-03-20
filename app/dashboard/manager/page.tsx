@@ -51,6 +51,7 @@ export default function ManagerDashboard() {
   const [zones, setZones] = useState<Zone[]>([]);
   const [selectedBinForDetails, setSelectedBinForDetails] = useState<string | null>(null);
   const [isRegisteringBin, setIsRegisteringBin] = useState(false);
+  const [assignments, setAssignments] = useState<any[]>([]);
   const supabase = createClient();
 
   // Fetch real data
@@ -79,6 +80,12 @@ export default function ManagerDashboard() {
         if (staffRes.ok) {
           const staffData = await staffRes.json();
           setStaffList(staffData);
+        }
+
+        const assignRes = await fetch('/api/assignments');
+        if (assignRes.ok) {
+          const assignData = await assignRes.json();
+          setAssignments(assignData);
         }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
@@ -501,7 +508,11 @@ export default function ManagerDashboard() {
                 <ZonePerformancePanel devices={locationDevices} zones={zones} />
               </div>
               <div className="lg:col-span-1">
-                <WorkerStatusMonitor />
+                <WorkerStatusMonitor 
+                  staff={staffList}
+                  assignments={assignments}
+                  zones={zones}
+                />
               </div>
             </div>
 
