@@ -175,10 +175,10 @@ export default function ManagerDashboard() {
               <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-white/40">Nexus v3.4</span>
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-white mb-2">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter text-white mb-2">
                 P.U.L.S.E <span className="text-white/20">/</span> MANAGER
               </h1>
-              <p className="text-white/40 max-w-xl text-sm leading-relaxed font-medium italic border-l-2 border-white/5 pl-4">
+              <p className="text-white/40 max-w-xl text-[11px] sm:text-sm leading-relaxed font-medium italic border-l-2 border-white/5 pl-4">
                 Real-time telemetry synthesis and autonomous collection monitoring powered by Fostride Intelligence.
               </p>
             </div>
@@ -325,8 +325,8 @@ export default function ManagerDashboard() {
         </div>
 
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-          <div className="flex justify-center">
-            <TabsList className="h-12 inline-flex bg-white/[0.03] border border-white/10 rounded-full px-1.5 py-1.5 shadow-2xl backdrop-blur-md">
+          <div className="flex justify-center overflow-x-auto pb-2 scrollbar-hide">
+            <TabsList className="h-12 inline-flex bg-white/[0.03] border border-white/10 rounded-full px-1.5 py-1.5 shadow-2xl backdrop-blur-md min-w-max">
               {[
                 { value: 'overview', label: 'Overview' },
                 { value: 'operations', label: 'Operations' },
@@ -447,9 +447,9 @@ export default function ManagerDashboard() {
           {/* Operations Tab */}
           <TabsContent value="operations" className="space-y-4">
             {/* Top Grid: Map (2/3) and Bin Details (1/3) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-[600px]">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:min-h-[600px]">
               {/* Left Column: Worker Location Map (2/3) */}
-              <div className="lg:col-span-2 rounded-[2rem] overflow-hidden border border-white/10 relative h-[600px] lg:h-auto z-10">
+              <div className="lg:col-span-2 rounded-[1.5rem] lg:rounded-[2rem] overflow-hidden border border-white/10 relative h-[350px] sm:h-[450px] lg:h-auto z-10">
                 <WorkerLocationMap
                   workers={staffList.map(s => ({
                     id: s.id,

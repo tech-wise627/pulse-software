@@ -19,18 +19,18 @@ export default function DashboardNav() {
 
   return (
     <nav className="sticky top-0 z-40 w-full border-b border-white/5 bg-[#080C10]/90 backdrop-blur-xl">
-      <div className="flex h-14 max-w-full items-center justify-between px-5">
+      <div className="flex h-14 max-w-full items-center justify-between px-4 sm:px-6">
         {/* Logo */}
         <div
-          className="flex items-center gap-2.5 cursor-pointer"
+          className="flex items-center gap-2 cursor-pointer"
           onClick={() => router.push('/dashboard')}
         >
-          <div className="w-6 h-6 rounded-md bg-[#00FF9C] flex items-center justify-center">
+          <div className="w-6 h-6 rounded-md bg-[#00FF9C] flex items-center justify-center shrink-0">
             <Zap className="h-3.5 w-3.5 text-black" strokeWidth={2.5} />
           </div>
-          <span className="font-semibold text-sm text-white tracking-tight hidden sm:inline">PULSE</span>
+          <span className="font-bold text-xs sm:text-sm text-white tracking-tight">PULSE</span>
           <span className="text-white/20 mx-1 hidden sm:inline">·</span>
-          <span className="text-sm text-white/40 hidden sm:inline">{getTitle()}</span>
+          <span className="text-[10px] sm:text-xs text-white/40 uppercase tracking-widest truncate hidden sm:inline-block max-w-[150px]">{getTitle()}</span>
         </div>
 
         {/* Actions */}

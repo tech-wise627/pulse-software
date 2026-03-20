@@ -125,29 +125,29 @@ export default function BinDetailsPanel({ device, staffList = [], onClose }: Bin
   const avgFillRate = 72;
 
   return (
-    <div className="relative group bg-white/[0.03] border border-white/10 rounded-[2rem] overflow-hidden backdrop-blur-md shadow-2xl transition-all hover:border-[#00FF9C]/30 w-full">
+    <div className="relative group bg-white/[0.03] border border-white/10 rounded-[1.5rem] lg:rounded-[2rem] overflow-hidden backdrop-blur-md shadow-2xl transition-all hover:border-[#00FF9C]/30 w-full">
       {/* Header */}
-      <div className="p-8 border-b border-white/5 flex items-start justify-between bg-white/[0.01]">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-[#00FF9C]/10 border border-[#00FF9C]/20 flex items-center justify-center">
-            <Droplet className="w-6 h-6 text-[#00FF9C]" />
+      <div className="p-5 lg:p-8 border-b border-white/5 flex items-start justify-between bg-white/[0.01]">
+        <div className="flex items-center gap-3 lg:gap-4">
+          <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl bg-[#00FF9C]/10 border border-[#00FF9C]/20 flex items-center justify-center shrink-0">
+            <Droplet className="w-5 h-5 lg:w-6 lg:h-6 text-[#00FF9C]" />
           </div>
           <div>
-            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">{device.name}</h3>
-            <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mt-0.5">Asset ID: {device.device_id}</p>
+            <h3 className="text-xs lg:text-sm font-black uppercase tracking-[0.2em] text-white">{device.name}</h3>
+            <p className="text-[9px] lg:text-[10px] font-bold text-white/30 uppercase tracking-widest mt-0.5">Asset ID: {device.device_id}</p>
           </div>
         </div>
         <button
           onClick={onClose}
-          className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all"
+          className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all"
         >
           ✕
         </button>
       </div>
 
-      <div className="p-8 space-y-8">
+      <div className="p-5 lg:p-8 space-y-6 lg:space-y-8">
         {/* Status Grid */}
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-4 lg:gap-6">
           <div className="bg-white/[0.02] p-5 rounded-2xl border border-white/5 relative group/stat overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover/stat:opacity-20 transition-opacity">
                <BarChart3 className="w-8 h-8 text-[#00FF9C]" />
