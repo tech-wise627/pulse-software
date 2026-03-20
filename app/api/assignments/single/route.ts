@@ -9,6 +9,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing device_id parameter' }, { status: 400 });
     }
 
+    console.log(`[Diagnostic] Fetching assignment for device_id: ${device_id}`);
+    
     const supabaseAdmin = createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -16,21 +18,25 @@ export async function GET(request: NextRequest) {
     
     const client = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : await createClient();
 
+    // Diagnostic query: find ANY assignments to see if the table is even working
+    const { count } = await client.from('staff_assignments').select('*', { count: 'exact', head: true });
+    console.log(`[Diagnostic] Total assignments in table: ${count}`);
+
     const { data, error } = await client
       .from('staff_assignments')
       .select('*, staff:users!staff_id(id, full_name, role)')
       .eq('device_id', device_id)
-      .order('assigned_at', { ascending: false })
-      .limit(1)
-      .single();
+      .order('assigned_at', { ascending: false });
 
-    // Code PGRST116 means no rows returned, which is fine (unassigned)
-    if (error && error.code !== 'PGRST116') {
-      console.error('Fetch error:', error);
-      throw error;
+    console.log(`[Diagnostic] Query result:`, data ? `${data.length} rows` : 'error');
+
+    if (error) {
+      console.error('[Diagnostic] Select error:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ assignment: data || null });
+    const assignment = data && data.length > 0 ? data[0] : null;
+    return NextResponse.json({ assignment });
   } catch (error: any) {
     console.error('Error fetching single assignment:', error);
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
