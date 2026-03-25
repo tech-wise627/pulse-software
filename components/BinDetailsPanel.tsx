@@ -14,9 +14,10 @@ interface BinDetailsProps {
   device: IoTDevice | null;
   staffList?: any[];
   onClose: () => void;
+  onAssignmentChange?: () => void;
 }
 
-export default function BinDetailsPanel({ device, staffList = [], onClose }: BinDetailsProps) {
+export default function BinDetailsPanel({ device, staffList = [], onClose, onAssignmentChange }: BinDetailsProps) {
   const [assignedStaff, setAssignedStaff] = useState<any>(null);
   const [selectedStaffId, setSelectedStaffId] = useState<string>('');
   const [loadingAssignment, setLoadingAssignment] = useState(false);
@@ -71,6 +72,7 @@ export default function BinDetailsPanel({ device, staffList = [], onClose }: Bin
       
       const assigned = staffList.find(s => s.id === selectedStaffId);
       if (assigned) setAssignedStaff(assigned);
+      if (onAssignmentChange) onAssignmentChange();
     } catch (error: any) {
       console.error('Error assigning staff:', error);
       alert(`Failed to assign staff: ${error.message}`);
@@ -101,6 +103,7 @@ export default function BinDetailsPanel({ device, staffList = [], onClose }: Bin
       
       setAssignedStaff(null);
       setSelectedStaffId('');
+      if (onAssignmentChange) onAssignmentChange();
     } catch (error: any) {
       console.error('Error unassigning staff:', error);
       alert(`Failed to unassign staff: ${error.message}`);

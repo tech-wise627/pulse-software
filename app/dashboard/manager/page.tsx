@@ -51,49 +51,40 @@ export default function ManagerDashboard() {
   const [zones, setZones] = useState<Zone[]>([]);
   const [selectedBinForDetails, setSelectedBinForDetails] = useState<string | null>(null);
   const [isRegisteringBin, setIsRegisteringBin] = useState(false);
+  const [isAssigning, setIsAssigning] = useState(false);
   const [assignments, setAssignments] = useState<any[]>([]);
   const supabase = createClient();
 
-  // Fetch real data
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [locRes, devRes, staffRes] = await Promise.all([
-          fetch('/api/locations'),
-          fetch('/api/devices'),
-          fetch('/api/staff')
-        ]);
-        
-        if (locRes.ok) {
-          const locData = await locRes.json();
-          setLocations(locData);
-          if (locData.length > 0 && !selectedLocation) {
-            setSelectedLocation(locData[0].id);
-          }
+  const refreshData = async () => {
+    try {
+      const [locRes, devRes, staffRes, assignRes] = await Promise.all([
+        fetch('/api/locations'),
+        fetch('/api/devices'),
+        fetch('/api/staff'),
+        fetch('/api/assignments')
+      ]);
+      
+      if (locRes.ok) {
+        const locData = await locRes.json();
+        setLocations(locData);
+        if (locData.length > 0 && !selectedLocation) {
+          setSelectedLocation(locData[0].id);
         }
-        
-        if (devRes.ok) {
-          const devData = await devRes.json();
-          setDeviceList(devData);
-        }
-        
-        if (staffRes.ok) {
-          const staffData = await staffRes.json();
-          setStaffList(staffData);
-        }
-
-        const assignRes = await fetch('/api/assignments');
-        if (assignRes.ok) {
-          const assignData = await assignRes.json();
-          setAssignments(assignData);
-        }
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-      } finally {
-        setLoading(false);
       }
+      
+      if (devRes.ok) setDeviceList(await devRes.json());
+      if (staffRes.ok) setStaffList(await staffRes.json());
+      if (assignRes.ok) setAssignments(await assignRes.json());
+    } catch (error) {
+      console.error('Error refreshing dashboard data:', error);
+    } finally {
+      setLoading(false);
     }
-    fetchData();
+  };
+
+  // Fetch real data on mount
+  useEffect(() => {
+    refreshData();
 
     // Subscribe to staff location updates
     const channel = supabase
@@ -132,6 +123,40 @@ export default function ManagerDashboard() {
     }
     fetchZones();
   }, [selectedLocation]);
+
+  const handleAssignBin = async () => {
+    if (!selectedStaff || !selectedBinForAssignment) return;
+    
+    setIsAssigning(true);
+    try {
+      const response = await fetch('/api/assignments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          staff_id: selectedStaff,
+          device_ids: [selectedBinForAssignment],
+          assignment_orders: [1]
+        })
+      });
+
+      if (response.ok) {
+        // Refresh assignments
+        await refreshData();
+        
+        setSelectedBinForAssignment('');
+        setShowAssignBinDialog(false);
+        alert('Bin assigned successfully!');
+      } else {
+        const error = await response.json();
+        alert(`Failed to assign bin: ${error.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error assigning bin:', error);
+      alert('Network error while assigning bin');
+    } finally {
+      setIsAssigning(false);
+    }
+  };
 
   const currentLocation = locations.find((l) => l.id === selectedLocation);
   const currentEvent = currentLocation; // Alias for event boundary access
@@ -482,6 +507,7 @@ export default function ManagerDashboard() {
                     device={deviceList.find(d => d.id === selectedBinForDetails) || null}
                     staffList={staffList}
                     onClose={() => setSelectedBinForDetails(null)}
+                    onAssignmentChange={refreshData}
                   />
                 ) : (
                   <div className="flex-1 min-h-[400px] h-full flex items-center justify-center bg-white/[0.03] border border-white/10 rounded-[2rem] p-8 text-center backdrop-blur-md">
@@ -772,15 +798,11 @@ export default function ManagerDashboard() {
                         </Select>
                       </div>
                       <Button 
-                        onClick={() => {
-                          if (selectedBinForAssignment) {
-                            setSelectedBinForAssignment('');
-                            setShowAssignBinDialog(false);
-                          }
-                        }}
-                        className="w-full bg-primary hover:bg-primary/90"
+                        onClick={handleAssignBin}
+                        disabled={!selectedBinForAssignment || isAssigning}
+                        className="w-full bg-[#00FF9C] hover:bg-[#00FF9C]/90 text-black font-bold uppercase tracking-widest"
                       >
-                        Assign Bin
+                        {isAssigning ? 'Assigning...' : 'Confirm Assignment'}
                       </Button>
                     </div>
                   </DialogContent>
